@@ -5,4 +5,14 @@ class ReportGenerator
     @end_date = end_date
     @client = client
   end
+
+  def make_report
+  end
+
+  private
+  def pdf
+  end
+
+  def xlsx
+  end
 end
