@@ -11,6 +11,7 @@ class ReportGenerator
 
   private
   def pdf
+    # to make things portable, maybe we use Prawn? I'm worried about the binary for wickedpdf
   end
 
   def xlsx
