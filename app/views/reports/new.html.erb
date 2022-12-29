@@ -1,0 +1,24 @@
+<div class="input-form">
+  <h1>Report Options</h1>
+  <div>
+      <p>For PDF reporting, the date selected determines the year of the report. For example, selecting November 23, 2021 will generate reports for that client's projects in the year 2021.</p>
+      <p>For XLSX reporting, the date selected determines the last day of the report for that year. For example, selecting November 23, 2021 will generate reports for that client's projects from January 1, 2021 to November 23, 2021.</p>
+      <p><strong>For projects spanning calendar years, you must run reports for each year the project was active in order to get a full picture.</strong> This annual limitation is imposed by the underlying data source.</p>
+    </ul>
+  </div>
+  <%= form_with url: "/report", method: :post do |form| %>
+    <div>
+      <%= form.label :date, 'Date: ' %>
+      <%= form.date_field :date, { required: true, value: Date.today } %>
+    </div>
+    <div>
+      <%= form.label :type, 'Type: ' %>
+      <%= form.select :type, [['PDF', 'pdf'], ['XLSX', 'xlsx']], selected: 'PDF', required: true %>
+    </div>
+    <div>
+      <%= form.label :client, 'Client: ' %>
+      <%= form.collection_select :client, Client.order(:name), :id, :name, selected: Client.first, required: true %>
+    </div>
+    <%= form.submit 'Go!' %>
+  <% end %>
+<div>

@@ -1,4 +1,8 @@
 class ReportsController < ApplicationController
+  def new
+    render :new
+  end
+
   def create
     # Recieve info from form, and query API to create based on type.
     # Maybe we need a ReportGenerator service object here?

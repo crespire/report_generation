@@ -13,3 +13,17 @@
  *= require_tree .
  *= require_self
  */
+
+ * {
+  max-width: 65ch;
+  margin-left: auto;
+  margin-right: auto;
+ }
+
+ body {
+  padding: 2em;
+ }
+
+ .input-form {
+  flex-direction: column;
+ }
