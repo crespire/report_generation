@@ -1,8 +1,11 @@
 class ReportGenerator
-  def initialize(type, start_date, end_date, client)
+  include Days
+
+  def initialize(type, date, client)
+    date = Date.parse(date) unless date.is_a?(Date) # Must be a date object
     @type = type
-    @start_date = start_date
-    @end_date = end_date
+    @start_date = date.beginning_of_year
+    @end_date = type == 'pdf' ? date.end_of_year : date.yesterday
     @client = client
   end
 

@@ -5,4 +5,6 @@ Rails.application.routes.draw do
   # root "articles#index"
   root 'reports#new'
   post '/report', to: 'reports#create'
+  get '/budgets', to: 'reports#budgets'
+  post '/budgets', to: 'reports#create_pdf'
 end

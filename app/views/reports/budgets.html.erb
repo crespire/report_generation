@@ -1,0 +1,24 @@
+<div class="input-form">
+  <h1><%= @client_name %> Projects</h1>
+  <div>
+      <p>Enter the project budgets below.</p>
+      <p>Leave the budget as "s" to skip generating that project report.</p>
+  </div>
+  <%= form_with url: "/budgets", method: :post do |form| %>
+    <%= form.hidden_field :client, value: @client_id %>
+    <table class="budget-table">
+      <tr>
+        <th>Project</th>
+        <th>Budget</th>
+      </tr>
+      <% @projects.each do |project| %>
+        <tr>
+          <td><%= project['name'] %></td>
+          <td><%= form.text_field "budgets[#{project['name']}]", value: 's' %></td>
+        </tr>
+        
+      <% end %>
+    </table>
+    <%= form.submit 'Go!' %>
+  <% end %>
+<div>

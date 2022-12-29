@@ -6,53 +6,14 @@ require 'net/http'
 
 class Clockify
   ##
-  # Provides read access to the current client
-  attr_reader :active_client
-
-  ##
   # Creates a new instance of the API and initializes the API key.
   def initialize
     @authkey = Rails.application.credentials.clockify!
     @workspace = Rails.application.credentials.workspace!
     @uri_reports = "https://reports.api.clockify.me/v1"
     @uri_base = "https://api.clockify.me/api/v1"
-    @clients = nil
-    @active_client = nil
-    @client_names = nil
   end
 
-  ##
-  # Populates the @clients variable with the JSON API response.
-  #
-  # The option boolean +force+ can be provided to update from API even if client list is populated. It defaults to false.
-
-  def client_list(force: false)
-    return true unless @clients.nil? || force
-
-    endpoint = "#{@uri_base}/#{@workspace}/clients"
-    query = '?archived=false&page-size=5000'
-    uri = URI(endpoint + query)
-    request = Net::HTTP::Get.new(uri, { 'Content-Type': 'application/json', 'X-Api-Key': @authkey })
-    response = Net::HTTP::start(uri.hostname, uri.port, use_ssl: true) { |http| http.request(request) }
-    @clients = JSON.parse(response.body)
-  end
-
-  ##
-  # Retreives the client ID based on +search+ name provided.
-
-  def client_id(search)
-    client_list if @clients.nil?
-
-    @clients.each do |client|
-      return client['id'] if client['name'].include?(search)
-    end
-  end
-
-  ##
-  # Sets the active client for the API instance
-  def set_client(input=nil)
-    @active_client = input if input
-  end
 
   ##
   # Creates a detailed report for the current @active_client based on the date range provided.
@@ -61,9 +22,8 @@ class Clockify
   #
   # +end_date+ is a string in the number format "%Y-%m-%d"
 
-  def detailed_report(start_date, end_date)
-    @active_client ||= set_client
-    puts "Requesting data for #{@active_client} from #{start_date} to #{end_date}"
+  def detailed_report(client, start_date, end_date)
+    puts "Requesting data for #{client} from #{start_date} to #{end_date}"
     endpoint = "#{@uri_reports}/#{@workspace}/reports/detailed"
     uri = URI(endpoint)
     request = Net::HTTP::Post.new(uri, { 'Content-Type': 'application/json', 'X-Api-Key': @authkey })
@@ -80,11 +40,20 @@ class Clockify
       exportType: 'JSON',
       clients: {
         contains: 'CONTAINS',
-        ids: [client_id(@active_client)]
+        ids: [client]
       },
       archived: false
     }.to_json
     response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) { |http| http.request(request) }
+    JSON.parse(response.body)
+  end
+
+  def projects(client)
+    endpoint = "#{@uri_base}/#{@workspace}/projects"
+    query = "?archived=false&page-size=5000&clients=#{client}"
+    uri = URI(endpoint + query)
+    request = Net::HTTP::Get.new(uri, { 'Content-Type': 'application/json', 'X-Api-Key': @authkey })
+    response = Net::HTTP::start(uri.hostname, uri.port, use_ssl:true) { |http| http.request(request) }
     JSON.parse(response.body)
   end
 end

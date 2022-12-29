@@ -27,3 +27,49 @@
  .input-form {
   flex-direction: column;
  }
+
+ table.budget-table {
+  border: 2px solid #FFFFFF;
+  width: 100%;
+  text-align: left;
+  border-collapse: collapse;
+}
+
+table.budget-table td input {
+  background-color: inherit;
+  border: dashed #5e5e5e 1px;
+}
+
+table.budget-table td, table.budget-table th {
+  border: 1px solid #FFFFFF;
+  padding: 3px 4px;
+}
+
+table.budget-table tbody td {
+  font-size: 13px;
+}
+
+table.budget-table tr:nth-child(even) {
+  background: #E1E1E1;
+}
+
+table.budget-table thead {
+  background: #FFFFFF;
+  border-bottom: 4px solid #333333;
+}
+
+table.budget-table thead th {
+  font-size: 15px;
+  font-weight: bold;
+  color: #333333;
+  text-align: center;
+  border-left: 2px solid #333333;
+}
+
+table.budget-table thead th:first-child {
+  border-left: none;
+}
+
+table.budget-table tfoot td {
+  font-size: 14px;
+}
