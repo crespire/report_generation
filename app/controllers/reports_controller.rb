@@ -196,7 +196,8 @@ class ReportsController < ApplicationController
       begin
         workbook = Tempfile.new(['temp', '.xlsx'])
         file.serialize(workbook)
-        send_data(workbook, type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', filename: filename)
+        data = File.read(workbook.path)
+        send_data(data, type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', filename: filename)
       ensure
         workbook.close!
       end
@@ -254,16 +255,11 @@ class ReportsController < ApplicationController
           zip.add(filename, pdf_file.path)
         end
       end
-
       zip_data = File.read(temp_zip.path)
       send_data(zip_data, type: 'application/zip', filename: zip_name)
     ensure
-      temp_zip.close
-      temp_zip.unlink
-      cleanup.each do |file|
-        file.close
-        file.unlink
-      end
+      temp_zip.close!
+      cleanup.each(&:close!)
     end
   end
 
