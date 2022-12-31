@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= proj %> Report</title>
+    <style>
+        td {
+            padding: 7px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>Summary for <%= proj %></h1>
+    <p>This table includes tasks for this project on <a href="https://clockify.me">Clockify</a> <strong>for the date range indicated</strong>.</p>
+    <p>Report date range: <strong><%= @first_day.strftime('%Y-%b-%d') %></strong> to <strong><%= @last_day.strftime('%Y-%b-%d') %></strong>.</p>
+    <p>Report generated at <%= "#{Time.now.strftime('%T on %b %d %Y')}" %></p>
+    <p><a href='#bill_sum'>Jump to billing summary.</a></p>
+    <h2>Task Summary</h2>
+    <% project_hours = 0 %>
+    <% weeks.each do |week, users| %>
+        <% week_start = Date.commercial(@last_day.cwyear, week, 1) %>
+        <% week_end = Date.commercial(@last_day.cwyear, week, 7) %>
+        <% total_weekly_hours = 0 %>
+        <h3><%= "Week #{week} (#{week_start.strftime("%B %d")} - #{week_end.strftime("%B %d")})" %></h3>
+        <% users.each do |person, days| %>
+            <p><strong><%= person %></strong></p>
+            <table>
+            <tr>
+                <td>Day</td>
+                <td>Duration</td>
+                <td>Entries</td>
+                <td>Full Days to bill</td>
+            </tr>
+            <% user_hours = 0 %>
+            <% days.each do |day, hour_array| %>
+                <% total_hours = hour_array.reduce(0, :+).round(2) %>
+                <% tasks = hour_array.count %>
+                <% bill_days = (total_hours / 7).round(2) %>
+                <tr>
+                    <td><%= "#{day.strftime('%b %d')}" %></td>
+                    <td><%= total_hours %></td>
+                    <td><%= tasks %></td>
+                    <td><%= bill_days %></td>
+                </tr>
+                <% user_hours += total_hours.round(2) %>
+                <% total_weekly_hours += total_hours.round(2) %>
+            <% end %>
+            <tr>
+                <td><strong><%= person %></strong></td>
+                <td><%= "#{user_hours.round(2)}" %>hrs</td>
+                <td><%="#{(user_hours / 7).round(2)}" %> days</td>
+            </tr>
+            </table><br>
+        <% end %>
+        <p>Total weekly hours for all tasks: <strong><%= total_weekly_hours.round(2) %>h (<%= (total_weekly_hours / DAY_STANDARD).round(2) %> days)</strong></p>
+        <% project_hours += total_weekly_hours.round(2) %>
+        <hr />
+    <% end %>
+    <h2 id='bill_sum'>Project billing status</h2>
+    <p>Effort hours so far summary: <%= project_hours.round(2) %></p>
+    <p>Effort days converted to full: <%= "#{(project_hours / DAY_STANDARD).round(2)}" %> days</p>
+    <% if days_proposed.positive? %>
+        <p>Project estimated effort: <%= days_proposed %> days</p>
+        <p>Balance of days summary: <%= "#{((project_hours / DAY_STANDARD) - days_proposed.to_f).round(2)}" %> days<sup>*</sup></p>
+        <span style="font-size: 0.75rem"><sup>*</sup> Negative values indicate we have runway, positive values mean we are overbudget compared to the proposal.</span>
+    <% end %>
+</body>
+</html>

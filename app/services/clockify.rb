@@ -22,8 +22,8 @@ class Clockify
   #
   # +end_date+ is a string in the number format "%Y-%m-%d"
 
-  def detailed_report(client, start_date, end_date)
-    puts "Requesting data for #{client} from #{start_date} to #{end_date}"
+  def detailed_report(client_id, client_name, start_date, end_date)
+    puts "Requesting data for #{client_name} from #{start_date} to #{end_date}"
     endpoint = "#{@uri_reports}/#{@workspace}/reports/detailed"
     uri = URI(endpoint)
     request = Net::HTTP::Post.new(uri, { 'Content-Type': 'application/json', 'X-Api-Key': @authkey })
@@ -40,7 +40,7 @@ class Clockify
       exportType: 'JSON',
       clients: {
         contains: 'CONTAINS',
-        ids: [client]
+        ids: [client_id]
       },
       archived: false
     }.to_json
@@ -50,7 +50,7 @@ class Clockify
 
   def projects(client)
     endpoint = "#{@uri_base}/#{@workspace}/projects"
-    query = "?archived=false&page-size=5000&clients=#{client}"
+    query = "?archived=false&page-size=5000&sort-order=DESCENDING&clients=#{client}"
     uri = URI(endpoint + query)
     request = Net::HTTP::Get.new(uri, { 'Content-Type': 'application/json', 'X-Api-Key': @authkey })
     response = Net::HTTP::start(uri.hostname, uri.port, use_ssl:true) { |http| http.request(request) }
