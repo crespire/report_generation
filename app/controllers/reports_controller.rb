@@ -193,14 +193,7 @@ class ReportsController < ApplicationController
         end
       end
       filename = "#{@client_name}_tasks_summary_ending_#{@last_end.strftime('%F')}.xlsx"
-      begin
-        workbook = Tempfile.new(['temp', '.xlsx'])
-        file.serialize(workbook)
-        data = File.read(workbook.path)
-        send_data(data, type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', filename: filename)
-      ensure
-        workbook.close!
-      end
+      send_data(file.to_stream.read, type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', filename: filename)
     end
   end
 
