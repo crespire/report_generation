@@ -14,16 +14,18 @@ class Clockify
     @uri_base = "https://api.clockify.me/api/v1"
   end
 
-
   ##
-  # Creates a detailed report for the current @active_client based on the date range provided.
+  # Creates a detailed report based on the parameters provided.
+  #
+  # +client_id+ is a string of the client's Clockify ID
+  #
+  # +client_name+ is the name of the client
   #
   # +start_date+ is a string in the number format "%Y-%m-%d"
   #
   # +end_date+ is a string in the number format "%Y-%m-%d"
 
   def detailed_report(client_id, client_name, start_date, end_date)
-    puts "Requesting data for #{client_name} from #{start_date} to #{end_date}"
     endpoint = "#{@uri_reports}/#{@workspace}/reports/detailed"
     uri = URI(endpoint)
     request = Net::HTTP::Post.new(uri, { 'Content-Type': 'application/json', 'X-Api-Key': @authkey })
@@ -53,7 +55,7 @@ class Clockify
     query = "?archived=false&page-size=5000&sort-order=DESCENDING&clients=#{client}"
     uri = URI(endpoint + query)
     request = Net::HTTP::Get.new(uri, { 'Content-Type': 'application/json', 'X-Api-Key': @authkey })
-    response = Net::HTTP::start(uri.hostname, uri.port, use_ssl:true) { |http| http.request(request) }
+    response = Net::HTTP::start(uri.hostname, uri.port, use_ssl: true) { |http| http.request(request) }
     JSON.parse(response.body)
   end
 end

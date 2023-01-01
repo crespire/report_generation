@@ -1,24 +1,30 @@
 <div class="input-form">
   <h1>Report Options</h1>
   <div>
-      <p>For PDF reporting, the date selected determines the year of the report. For example, selecting November 23, 2021 will generate reports for that client's projects in the year 2021 until the selected date.</p>
-      <p>For XLSX reporting, the date selected determines the selected week. For example, selecting November 23, 2021 will generate reports for that client's projects from the previous week ending the last Sunday from the selected date (November 14 through 20).</p>
+      <p>For PDF reporting, the date selected determines the year of the report. For example, selecting December 23, 2022 will generate reports for that client's projects in the year 2022.</p>
+      <p>For XLSX reporting, the date selected determines the selected week. For example, selecting December 23, 2022 will generate reports for that client's projects from that week starting Monday through to Sunday (December 19 to December 25).</p>
+      <p>Consider the XLSX a weekly detail report, while the PDF is a high level summary of the year.</p>
       <p><strong>For projects spanning calendar years, you must run reports for each year the project was active in order to get a full picture.</strong> This annual limitation is imposed by the underlying data source.</p>
     </ul>
   </div>
   <%= form_with url: "/report", method: :post, data: { turbo: false } do |form| %>
     <div>
       <%= form.label :date, 'Date: ' %>
-      <%= form.date_field :date, { required: true, value: Date.today } %>
+      <%= form.date_field :date, { required: true, value: params[:date] || Date.today } %>
     </div>
     <div>
       <%= form.label :type, 'Type: ' %>
-      <%= form.select :type, [['PDF', 'pdf'], ['XLSX', 'xlsx']], selected: 'PDF', required: true %>
+      <%= form.select :type, [['PDF', 'pdf'], ['XLSX', 'xlsx']], selected: params[:type], required: true %>
     </div>
     <div>
       <%= form.label :client, 'Client: ' %>
-      <%= form.collection_select :client, Client.order(:name), :id, :name, selected: Client.first, required: true %>
+      <%= form.collection_select :client, Client.order(:name), :id, :name, selected: params[:client], required: true %>
     </div>
     <%= form.submit 'Go!' %>
+  <% end %>
+  <% flash.each do |type, msg| %>
+    <div class="flash flash-<%= type %>" data-controller='toggle-display' data-action='animationend->flash-display#hide'>
+      <%= msg %>
+    </div>
   <% end %>
 <div>

@@ -6,8 +6,8 @@
   </div>
   <%= form_with url: "/budgets", method: :post, local: true, data: { turbo: false } do |form| %>
     <%= form.hidden_field :client_id, value: @client_id %>
-    <%= form.hidden_field :date, value: @date %>
     <%= form.hidden_field :client_name, value: @client_name %>
+    <%= form.hidden_field :date, value: @date %>
     <table class="budget-table">
       <tr>
         <th>Project</th>

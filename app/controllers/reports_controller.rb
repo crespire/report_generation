@@ -8,31 +8,23 @@ class ReportsController < ApplicationController
     render :new
   end
 
-  def budgets
-    date = Date.parse(params[:date])
-    puts "Budgets action: #{params[:client]} for #{date}"
-    @client_name = Client.find(params[:client]).name
-    @client_id = params[:client]
-    @date = date
-    @api = Clockify.new
-    @projects = @api.projects(@client_id)
-    render :budgets
-  end
-
   def create
     # If PDF, we need more information
     redirect_to action: 'budgets', params: report_params.reject { |k| k['authenticity_token'] || k['commit'] } and return if params[:type] == 'pdf'
 
     # Otherwise, generate XLSX reporting
-    @api = Clockify.new
+    create_xlsx(report_params)
+  end
+
+  def create_xlsx(params)
+    api = Clockify.new
     date = Date.parse(params[:date])
     @projects = Hash.new { |hash, key| hash[key] = [] }
     @client_id = params[:client]
     @client_name = Client.find(params[:client]).name
-    @last_end = Days.prior_weekday(date, 'Sunday')
-    @last_start = Days.prior_weekday(@last_end, 'Monday')
+    @start_date, @end_date = get_days(date.cweek, date.year)
 
-    json = @api.detailed_report(@client_id, @client_name, @last_start, @last_end)
+    json = api.detailed_report(@client_id, @client_name, @start_date, @end_date)
     raise "Error: #{json['code']} #{json['message']}" if json.key?('code')
 
     json['timeentries'].each do |entry|
@@ -61,17 +53,17 @@ class ReportsController < ApplicationController
       )
     end
 
+    redirect_to root_path(type: 'xlsx', date: date, client: @client_id), notice: "No tasks recorded for #{date}." and return if @projects.empty?
+
     Axlsx::Package.new do |file|
       @projects.each do |project, tasks_array|
         file.workbook.add_worksheet(name: project) do |sheet|
           style = sheet.styles
-          money_style = style.add_style num_fmt: 4
           bold_text = style.add_style b: true
-          outline_style = style.add_style border: 1
 
-          day_start = @last_start.strftime('%B %d')
-          day_end = @last_start.month == @last_end.month ? @last_end.strftime('%d') : @last_end.strftime('%B %d')
-          sheet.add_row ["Week #{@last_end.cweek} (#{day_start} - #{day_end})".upcase], style: [bold_text]
+          day_start = @start_date.strftime('%B %d')
+          day_end = @start_date.month == @end_date.month ? @end_date.strftime('%d') : @end_date.strftime('%B %d')
+          sheet.add_row ["Week #{@end_date.cweek} (#{day_start} - #{day_end})".upcase], style: [bold_text]
           sheet.add_row(
             [
               'Project',
@@ -193,13 +185,21 @@ class ReportsController < ApplicationController
           sheet.column_widths 15, 10, 35, 10, 15, 15, 5, 10, 10, 10, 10, 25, 7, 10, 10, 10, 5, 5
         end
       end
-      filename = "#{@client_name}_tasks_summary_ending_#{@last_end.strftime('%F')}.xlsx"
+      filename = "#{@client_name}_tasks_summary_ending_#{@end_date.strftime('%F')}.xlsx"
       send_data(file.to_stream.read, type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', filename: filename)
     end
   end
 
+  def budgets
+    api = Clockify.new
+    @client_id = params[:client]
+    @client_name = Client.find(params[:client]).name
+    @date = Date.parse(params[:date])
+    @projects = api.projects(@client_id)
+    render :budgets
+  end
+
   def create_pdf
-    puts 'Create PDF after getting budgets'
     @projects = Hash.new do |hash, key| 
       hash[key] = Hash.new do |projects, week|
         projects[week] = Hash.new do |week, user|
@@ -209,14 +209,13 @@ class ReportsController < ApplicationController
         end
       end
     end
-    @api = Clockify.new
-    date = Date.parse(params[:date])
-    @first_day = date.beginning_of_year
-    @last_day = date
+    api = Clockify.new
+    @last_day = Date.parse(params[:date]).end_of_year
+    @first_day = @last_day.beginning_of_year
     @client_name = params[:client_name]
     @client_id = params[:client_id]
 
-    json = @api.detailed_report(@client_id, @client_name, @first_day, date)
+    json = api.detailed_report(@client_id, @client_name, @first_day, @last_day)
     raise "Error: #{json['code']} #{json['message']}" if json.key?('code')
 
     json['timeentries'].each do |entry|
@@ -239,6 +238,7 @@ class ReportsController < ApplicationController
           next if @project_budgets[proj].zero?
 
           days_proposed = @project_budgets[proj]
+          weeks = weeks.sort.reverse.to_h
           report = erb.result(binding)
           pdf = WickedPdf.new.pdf_from_string(report, { keep_temp: false })
           filename = "#{@client_name}_#{proj} Report.pdf"
@@ -261,5 +261,11 @@ class ReportsController < ApplicationController
 
   def report_params
     params.permit(:authenticity_token, :commit, :client, :date, :type, budgets: [])
+  end
+
+  def get_days(week, year)
+    start_day = Date.commercial(year, week, 1)
+    end_day = Date.commercial(year, week, 7)
+    [start_day, end_day]
   end
 end
