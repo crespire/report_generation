@@ -1,6 +1,7 @@
 require('zip')
 
 class ReportsController < ApplicationController
+  http_basic_authenticate_with name: Rails.application.credentials.http_name!, password: Rails.application.credentials.http_pass!
   DAY_STANDARD = 7
 
   def new
