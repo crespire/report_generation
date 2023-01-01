@@ -1,0 +1,8 @@
+{
+  "cron": [
+    {
+      "command": "rake ds:update_clients",
+      "schedule": "0 0 * * 6"
+    }
+  ]
+}
