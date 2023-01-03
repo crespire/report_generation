@@ -58,4 +58,28 @@ class Clockify
     response = Net::HTTP::start(uri.hostname, uri.port, use_ssl: true) { |http| http.request(request) }
     JSON.parse(response.body)
   end
+
+  def has_tasks?(client_id, date)
+    endpoint = "#{@uri_reports}/#{@workspace}/reports/summary"
+    uri = URI(endpoint)
+    request = Net::HTTP::Post.new(uri, { 'Content-Type': 'application/json', 'X-Api-Key': @authkey })
+    request.body = {
+      # Required Info
+      dateRangeStart: "#{date.beginning_of_year}T00:00:00.000",
+      dateRangeEnd: "#{date.end_of_year}T23:59:59.000",
+      summaryFilter: {
+        groups: %w[CLIENT TASK],
+        sortColumn: 'GROUP'
+      },
+
+      # Filter to requested client
+      clients: {
+        ids: [client_id],
+        contains: 'CONTAINS'
+      }
+    }.to_json
+    response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) { |http| http.request(request) }
+    data = JSON.parse(response.body)
+    data['totals'].first.is_a? Hash
+  end
 end

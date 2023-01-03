@@ -193,9 +193,20 @@ class ReportsController < ApplicationController
   def budgets
     api = Clockify.new
     @client_id = params[:client]
-    @client_name = Client.find(params[:client]).name
     @date = Date.parse(params[:date])
+    tasks = api.has_tasks?(@client_id, @date)
+    redirect_to root_path(type: 'pdf', date: params[:date], client: @client_id), notice: "No tasks recorded for #{@date.year}." and return unless tasks
+
+    @client_name = Client.find(params[:client]).name
     @projects = api.projects(@client_id)
+    @prev_budgets = {}
+    @projects.each do |project|
+      if Project.exists?(name: project['name'])
+        record = Project.find_by(name: project['name'])
+        @prev_budgets[project['name']] = record.budget
+      end
+    end
+
     render :budgets
   end
 
@@ -225,6 +236,8 @@ class ReportsController < ApplicationController
       @projects[entry['projectName']][week][entry['userName']][date] << float_time
     end
 
+    
+
     report_template = File.read("#{Rails.root}/app/services/report_template.html.erb")
     erb = ERB.new(report_template, trim_mode: '<>')
     @project_budgets = params[:budgets].transform_values(&:to_f)
@@ -234,14 +247,21 @@ class ReportsController < ApplicationController
 
     begin
       Zip::File.open(temp_zip.path, Zip::File::CREATE) do |zip|
-        @projects.each do |proj, weeks|
-          next if @project_budgets[proj].zero?
+        @projects.each do |name, weeks|
+          next if @project_budgets[name].zero?
 
-          days_proposed = @project_budgets[proj]
+          if Project.exists?(name: name)
+            record = Project.find_by(name: name)
+            record.update(budget: @project_budgets[name])
+          else
+            Project.create(name: name, budget: @project_budgets[name])
+          end
+
+          days_proposed = @project_budgets[name]
           weeks = weeks.sort.reverse.to_h
           report = erb.result(binding)
           pdf = WickedPdf.new.pdf_from_string(report, { keep_temp: false })
-          filename = "#{@client_name}_#{proj} Report.pdf"
+          filename = "#{@client_name}_#{name} Report.pdf"
           pdf_file = Tempfile.new([filename, '.pdf'])
           pdf_file.binmode
           pdf_file.write(pdf)

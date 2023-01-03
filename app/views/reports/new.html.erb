@@ -23,7 +23,7 @@
     <%= form.submit 'Go!' %>
   <% end %>
   <% flash.each do |type, msg| %>
-    <div class="flash flash-<%= type %>" data-controller='toggle-display' data-action='animationend->flash-display#hide'>
+    <div class="flash flash-<%= type %>" data-controller='toggle-display' data-action='animationend->toggle-display#hide'>
       <%= msg %>
     </div>
   <% end %>
