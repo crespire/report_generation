@@ -101,7 +101,7 @@ table.budget-table tfoot td {
   width: fit-content;
   transform: translateX(-50%);
   padding: .75em;
-  animation: appear-then-fade 2s both;
+  animation: appear-then-fade 5.5s both;
 }
 
 .flash-notice {
