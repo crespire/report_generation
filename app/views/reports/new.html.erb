@@ -9,12 +9,12 @@
   </div>
   <%= form_with url: "/report", method: :post, data: { turbo: false } do |form| %>
     <div>
-      <%= form.label :date, 'Date: ' %>
-      <%= form.date_field :date, { required: true, value: params[:date] || Date.today } %>
-    </div>
-    <div>
       <%= form.label :type, 'Type: ' %>
       <%= form.select :type, [['PDF', 'pdf'], ['XLSX', 'xlsx']], selected: params[:type], required: true %>
+    </div>
+    <div>
+      <%= form.label :date, 'Date: ' %>
+      <%= form.date_field :date, { required: true, value: params[:date] || Date.today } %>
     </div>
     <div>
       <%= form.label :client, 'Client: ' %>
