@@ -5,6 +5,7 @@ class ReportsController < ApplicationController
   DAY_STANDARD = 7
 
   def new
+    @clients = Client.all.order(:name)
     render :new
   end
 
@@ -21,10 +22,9 @@ class ReportsController < ApplicationController
     date = Date.parse(params[:date])
     @projects = Hash.new { |hash, key| hash[key] = [] }
     @client_id = params[:client]
-    @client_name = Client.find(params[:client]).name
     @start_date, @end_date = get_days(date.cweek, date.year)
 
-    json = api.detailed_report(@client_id, @client_name, @start_date, @end_date)
+    json = api.detailed_report(@client_id, @start_date, @end_date)
     raise "Error: #{json['code']} #{json['message']}" if json.key?('code')
 
     json['timeentries'].each do |entry|
@@ -55,6 +55,7 @@ class ReportsController < ApplicationController
 
     redirect_to root_path(type: 'xlsx', date: date, client: @client_id), notice: "No tasks recorded for #{date}." and return if @projects.empty?
 
+    @client_name = Client.find(params[:client]).name
     Axlsx::Package.new do |file|
       @projects.each do |project, tasks_array|
         file.workbook.add_worksheet(name: project) do |sheet|
@@ -226,7 +227,7 @@ class ReportsController < ApplicationController
     @client_name = params[:client_name]
     @client_id = params[:client_id]
 
-    json = api.detailed_report(@client_id, @client_name, @first_day, @last_day)
+    json = api.detailed_report(@client_id, @first_day, @last_day)
     raise "Error: #{json['code']} #{json['message']}" if json.key?('code')
 
     json['timeentries'].each do |entry|
@@ -235,8 +236,6 @@ class ReportsController < ApplicationController
       week = date.cweek
       @projects[entry['projectName']][week][entry['userName']][date] << float_time
     end
-
-    
 
     report_template = File.read("#{Rails.root}/app/services/report_template.html.erb")
     erb = ERB.new(report_template, trim_mode: '<>')

@@ -25,7 +25,7 @@ class Clockify
   #
   # +end_date+ is a string in the number format "%Y-%m-%d"
 
-  def detailed_report(client_id, client_name, start_date, end_date)
+  def detailed_report(client_id, start_date, end_date)
     endpoint = "#{@uri_reports}/#{@workspace}/reports/detailed"
     uri = URI(endpoint)
     request = Net::HTTP::Post.new(uri, { 'Content-Type': 'application/json', 'X-Api-Key': @authkey })

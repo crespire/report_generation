@@ -18,7 +18,7 @@
     </div>
     <div>
       <%= form.label :client, 'Client: ' %>
-      <%= form.collection_select :client, Client.order(:name), :id, :name, selected: params[:client], required: true %>
+      <%= form.collection_select :client, @clients, :id, :name, selected: params[:client], required: true %>
     </div>
     <%= form.submit 'Go!' %>
   <% end %>
