@@ -237,9 +237,12 @@ class ReportsController < ApplicationController
       @projects[entry['projectName']][week][entry['userName']][date] << float_time
     end
 
+    @project_budgets = params[:budgets].transform_values(&:to_f)
+    no_budgets = @project_budgets.values.all?(&:zero?)
+    redirect_to root_path(type: 'pdf', date: params[:date], client: @client_id), notice: 'No budgets were entered.' and return if no_budgets
+
     report_template = File.read("#{Rails.root}/app/services/report_template.html.erb")
     erb = ERB.new(report_template, trim_mode: '<>')
-    @project_budgets = params[:budgets].transform_values(&:to_f)
     zip_name = "#{@client_name.downcase}_reports_#{@last_day}.zip"
     temp_zip = Tempfile.new([zip_name, '.zip'])
     cleanup = []
