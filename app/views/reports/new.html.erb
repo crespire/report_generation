@@ -1,20 +1,37 @@
-<div class="input-form">
-  <h1>Report Options</h1>
+<div class="input-block">
+  <h1>DSReportBeaver</h1>
   <div>
-      <p>For PDF reporting, the date selected determines the year of the report. For example, selecting December 23, 2022 will generate reports for that client's projects in the year 2022.</p>
-      <p>For XLSX reporting, the date selected determines the selected week. For example, selecting December 23, 2022 will generate reports for that client's projects from that week starting Monday through to Sunday (December 19 to December 25).</p>
+      <p>For PDF reporting, select the year and client.</p>
+      <p>For XLSX reporting, the report will run from the Monday to Sunday of the selected week and client.</p>
       <p>Consider the XLSX a weekly detail report, while the PDF is a high level summary of the year.</p>
       <p><strong>For projects spanning calendar years, you must run reports for each year the project was active in order to get a full picture.</strong> This annual limitation is imposed by the underlying data source.</p>
     </ul>
   </div>
-  <%= form_with url: "/report", method: :post, data: { turbo: false } do |form| %>
+  <%= form_with url: "/report", method: :post, class: 'report-params', data: { turbo: false, controller: 'date-display' } do |form| %>
     <div>
       <%= form.label :type, 'Type: ' %>
-      <%= form.select :type, [['PDF', 'pdf'], ['XLSX', 'xlsx']], selected: params[:type], required: true %>
+      <%= form.select :type,
+                      [['PDF', 'pdf'], ['XLSX','xlsx']],
+                      { selected: params[:type], required: true, multiple: false }, 
+                      {
+                        data: {
+                          'date-display-target': 'input',
+                          action: 'change->date-display#toggle'
+                        },
+                      } %>
     </div>
     <div>
       <%= form.label :date, 'Date: ' %>
-      <%= form.date_field :date, { required: true, value: params[:date] || Date.today } %>
+      <%= form.select :date_year,
+                      options_for_select([*(Date.today.year - 5)..(Date.today.year + 5)], selected: params[:date_year] || Date.today.year),
+                      { multiple: false },
+                      { data: { 'date-display-target': 'year' } } %>
+      <%= form.date_field :date, {
+                            step: 7,
+                            required: true,
+                            value: params[:date] || Date.commercial(Date.today.year, Date.today.cweek) + 2.days,
+                            data: { 'date-display-target': 'week' }
+                          } %>
     </div>
     <div>
       <%= form.label :client, 'Client: ' %>

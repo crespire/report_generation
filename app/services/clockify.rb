@@ -59,14 +59,14 @@ class Clockify
     JSON.parse(response.body)
   end
 
-  def has_tasks?(client_id, date)
+  def has_tasks?(client_id, first, last)
     endpoint = "#{@uri_reports}/#{@workspace}/reports/summary"
     uri = URI(endpoint)
     request = Net::HTTP::Post.new(uri, { 'Content-Type': 'application/json', 'X-Api-Key': @authkey })
     request.body = {
       # Required Info
-      dateRangeStart: "#{date.beginning_of_year}T00:00:00.000",
-      dateRangeEnd: "#{date.end_of_year}T23:59:59.000",
+      dateRangeStart: "#{first}T00:00:00.000",
+      dateRangeEnd: "#{last}T23:59:59.000",
       summaryFilter: {
         groups: %w[CLIENT TASK],
         sortColumn: 'GROUP'

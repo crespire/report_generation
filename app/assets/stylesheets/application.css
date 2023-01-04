@@ -21,24 +21,35 @@
   margin: 0;
  }
 
- body {
+body {
   height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
  }
 
- .app {
+.app {
   width: 65ch;
   max-width: 65ch;
   padding: 2em;
  }
 
- .input-form {
+.input-block {
   flex-direction: column;
  }
 
- table.budget-table {
+.report-params {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  gap: 0.5em;
+}
+
+.report-params > * {
+  height: 1.5em;
+}
+
+table.budget-table {
   border: 2px solid #FFFFFF;
   width: 100%;
   text-align: left;
@@ -112,4 +123,8 @@ table.budget-table tfoot td {
 .flash-alert {
   background-color: palevioletred;
   font-weight: bold;
+}
+
+.hidden {
+  display: none;
 }

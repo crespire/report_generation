@@ -4,7 +4,7 @@
       <p>Enter the project budgets below. Projects will pre-fill with previously used budget, and changes will be persisted.</p>
       <p>Leave the budget as "s" to skip generating that project report.</p>
   </div>
-  <%= form_with url: "/budgets", method: :post, local: true, data: { turbo: false } do |form| %>
+  <%= form_with url: "/budgets", method: :post, class: 'report-params', local: true, data: { turbo: false } do |form| %>
     <%= form.hidden_field :client_id, value: @client_id %>
     <%= form.hidden_field :client_name, value: @client_name %>
     <%= form.hidden_field :date, value: @date %>
