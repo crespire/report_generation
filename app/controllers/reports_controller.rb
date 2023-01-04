@@ -5,6 +5,7 @@ class ReportsController < ApplicationController
   DAY_STANDARD = 7
 
   def new
+    @clients = Client.all.order(:name)
     render :new
   end
 
@@ -19,14 +20,15 @@ class ReportsController < ApplicationController
   def create_xlsx(params)
     api = Clockify.new
     date = Date.parse(params[:date])
-    @projects = Hash.new { |hash, key| hash[key] = [] }
     @client_id = params[:client]
-    @client_name = Client.find(params[:client]).name
     @start_date, @end_date = get_days(date.cweek, date.year)
+    tasks = api.has_tasks?(@client_id, @start_date, @end_date)
+    redirect_to root_path(type: 'xlsx', date: date, client: @client_id), notice: "No tasks recorded in date range." and return unless tasks
 
-    json = api.detailed_report(@client_id, @client_name, @start_date, @end_date)
+    json = api.detailed_report(@client_id, @start_date, @end_date)
     raise "Error: #{json['code']} #{json['message']}" if json.key?('code')
 
+    @projects = Hash.new { |hash, key| hash[key] = [] }
     json['timeentries'].each do |entry|
       entry_start = DateTime::iso8601(entry['timeInterval']['start'])
       entry_end = DateTime::iso8601(entry['timeInterval']['end'])
@@ -53,8 +55,7 @@ class ReportsController < ApplicationController
       )
     end
 
-    redirect_to root_path(type: 'xlsx', date: date, client: @client_id), notice: "No tasks recorded for #{date}." and return if @projects.empty?
-
+    @client_name = Client.find(params[:client]).name
     Axlsx::Package.new do |file|
       @projects.each do |project, tasks_array|
         file.workbook.add_worksheet(name: project) do |sheet|
@@ -193,9 +194,20 @@ class ReportsController < ApplicationController
   def budgets
     api = Clockify.new
     @client_id = params[:client]
-    @client_name = Client.find(params[:client]).name
-    @date = Date.parse(params[:date])
-    @projects = api.projects(@client_id)
+    @date = Date.commercial(params[:date_year].to_i, 2) # Get the second Monday of the year
+    tasks = api.has_tasks?(@client_id, @date.beginning_of_year, @date.end_of_year)
+    redirect_to root_path(type: 'pdf', date_year: @date.year, client: @client_id), notice: "No tasks recorded for #{@date.year}." and return unless tasks
+
+    @client_name = Client.find(@client_id).name
+    @projects = api.projects(@client_id, @date)
+    @prev_budgets = {}
+    @projects.each do |project|
+      record = Project.find_by(name: project['name'])
+      next unless record
+
+      @prev_budgets[project['name']] = record.budget
+    end
+
     render :budgets
   end
 
@@ -209,13 +221,17 @@ class ReportsController < ApplicationController
         end
       end
     end
-    api = Clockify.new
     @last_day = Date.parse(params[:date]).end_of_year
     @first_day = @last_day.beginning_of_year
     @client_name = params[:client_name]
     @client_id = params[:client_id]
 
-    json = api.detailed_report(@client_id, @client_name, @first_day, @last_day)
+    @project_budgets = params[:budgets].transform_values(&:to_f)
+    no_budgets = @project_budgets.values.all?(&:zero?)
+    redirect_to root_path(type: 'pdf', date_year: @last_day.year, client: @client_id), notice: 'No budgets were entered.' and return if no_budgets
+
+    api = Clockify.new
+    json = api.detailed_report(@client_id, @first_day, @last_day)
     raise "Error: #{json['code']} #{json['message']}" if json.key?('code')
 
     json['timeentries'].each do |entry|
@@ -227,21 +243,27 @@ class ReportsController < ApplicationController
 
     report_template = File.read("#{Rails.root}/app/services/report_template.html.erb")
     erb = ERB.new(report_template, trim_mode: '<>')
-    @project_budgets = params[:budgets].transform_values(&:to_f)
     zip_name = "#{@client_name.downcase}_reports_#{@last_day}.zip"
     temp_zip = Tempfile.new([zip_name, '.zip'])
     cleanup = []
 
     begin
       Zip::File.open(temp_zip.path, Zip::File::CREATE) do |zip|
-        @projects.each do |proj, weeks|
-          next if @project_budgets[proj].zero?
+        @projects.each do |name, weeks|
+          next if @project_budgets[name].zero?
 
-          days_proposed = @project_budgets[proj]
+          if Project.exists?(name: name)
+            record = Project.find_by(name: name)
+            record.update(budget: @project_budgets[name])
+          else
+            Project.create(name: name, budget: @project_budgets[name])
+          end
+
+          days_proposed = @project_budgets[name]
           weeks = weeks.sort.reverse.to_h
           report = erb.result(binding)
           pdf = WickedPdf.new.pdf_from_string(report, { keep_temp: false })
-          filename = "#{@client_name}_#{proj} Report.pdf"
+          filename = "#{@client_name}_#{name} Report.pdf"
           pdf_file = Tempfile.new([filename, '.pdf'])
           pdf_file.binmode
           pdf_file.write(pdf)
@@ -260,7 +282,7 @@ class ReportsController < ApplicationController
   private
 
   def report_params
-    params.permit(:authenticity_token, :commit, :client, :date, :type, budgets: [])
+    params.permit(:authenticity_token, :commit, :client, :date, :date_year, :type, budgets: [])
   end
 
   def get_days(week, year)

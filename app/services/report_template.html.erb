@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><%= proj %> Report</title>
+    <title><%= name %> Report</title>
     <style>
         td {
             padding: 7px;
@@ -13,7 +13,7 @@
     </style>
 </head>
 <body>
-    <h1>Summary for <%= proj %></h1>
+    <h1>Summary for <%= name %></h1>
     <p>This table collates tasks for this project on <a href="https://clockify.me">Clockify</a> <strong>for the date range indicated</strong>.</p>
     <p>Report date range: <strong><%= @first_day.strftime('%Y-%b-%d') %></strong> to <strong><%= @last_day.strftime('%Y-%b-%d') %></strong>.</p>
     <p>Report generated at <%= "#{Time.now.strftime('%T on %b %d %Y')}" %></p>
