@@ -7,7 +7,7 @@
       <p><strong>For projects spanning calendar years, you must run reports for each year the project was active in order to get a full picture.</strong> This annual limitation is imposed by the underlying data source.</p>
     </ul>
   </div>
-  <%= form_with url: "/report", method: :post, class: 'report-params', data: { turbo: false, controller: 'date-display' } do |form| %>
+  <%= form_with url: "/report", method: :post, class: 'report-params', data: { turbo: false, controller: 'date-display toggle-display' } do |form| %>
     <div>
       <%= form.label :type, 'Type: ' %>
       <%= form.select :type,
@@ -16,6 +16,7 @@
                       {
                         data: {
                           'date-display-target': 'input',
+                          'toggle-display-target': 'input',
                           action: 'change->date-display#toggle'
                         },
                       } %>
@@ -37,7 +38,7 @@
       <%= form.label :client, 'Client: ' %>
       <%= form.collection_select :client, @clients, :id, :name, selected: params[:client], required: true %>
     </div>
-    <%= form.submit 'Go!' %>
+    <%= form.submit 'Go!', data: { action: 'click->toggle-display#message' } %>
   <% end %>
   <% flash.each do |type, msg| %>
     <div class="flash flash-<%= type %>" data-controller='toggle-display' data-action='animationend->toggle-display#hide'>

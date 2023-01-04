@@ -199,7 +199,7 @@ class ReportsController < ApplicationController
     redirect_to root_path(type: 'pdf', date_year: @date.year, client: @client_id), notice: "No tasks recorded for #{@date.year}." and return unless tasks
 
     @client_name = Client.find(@client_id).name
-    @projects = api.projects(@client_id)
+    @projects = api.projects(@client_id, @date)
     @prev_budgets = {}
     @projects.each do |project|
       record = Project.find_by(name: project['name'])
