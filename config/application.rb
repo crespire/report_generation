@@ -33,8 +33,5 @@ module ReportGeneration
 
     # Don't generate system test files.
     config.generators.system_tests = nil
-
-    # Set timezone
-    config.time_zone = "Eastern Time (US & Canada)"
   end
 end
