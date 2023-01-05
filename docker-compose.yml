@@ -4,8 +4,8 @@ x-logging:
   &logging
   driver: "local"
   options:
-    max-size: "200k"
-    max-file: "10"
+    max-size: "5m"
+    max-file: "3"
 
 services:
   db:
@@ -14,6 +14,7 @@ services:
       - .env
     volumes:
       - postgres:/var/lib/postgresql/data
+    restart: always
     healthcheck:
       test: pg_isready -U postgres -h 127.0.0.1
       interval: 5s
@@ -21,10 +22,9 @@ services:
   web:
     build: .
     command: bundle exec rails s -p 3000 -b '0.0.0.0'
-    # TODO: figure out how to create and migrate db on first boot of container
-    # TODO: figure out how to configure logging
     volumes:
       - .:/Rails-Docker
+    restart: always
     ports:
       - "3000:3000"
     env_file:

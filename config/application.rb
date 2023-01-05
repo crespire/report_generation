@@ -34,7 +34,7 @@ module ReportGeneration
     # Don't generate system test files.
     config.generators.system_tests = nil
 
-    # Use SQLite3 in production
-    config.active_record.sqlite3_production_warning = false
+    # Set timezone
+    config.time_zone = "Eastern Time (US & Canada)"
   end
 end
