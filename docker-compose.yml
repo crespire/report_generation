@@ -12,6 +12,8 @@ services:
   web:
     build: .
     command: bundle exec rails s -p 3000 -b '0.0.0.0'
+    # TODO: figure out how to create and migrate db on first boot of container
+    # TODO: figure out how to configure logging
     volumes:
       - .:/Rails-Docker
     ports:
