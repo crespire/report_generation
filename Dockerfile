@@ -19,11 +19,6 @@ RUN bundle install
 # Precompile assets - only required for non-API apps
 RUN rake assets:precompile
 
-# Setup database
-RUN bin/rails db:create
-RUN bin/rails db:migrate
-RUN rake ds:update_clients
-
 # Set up env
 ENV RAILS_ENV production
 ENV RAILS_SERVE_STATIC_FILES true

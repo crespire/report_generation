@@ -19,9 +19,7 @@ services:
     env_file:
       - .env
     environment:
-      DATABASE_USER: postgres
-      DATABASE_HOST: db
-      DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD}@db:5432
+      DATABASE_URL: ${DATABASE_URL}
     depends_on:
       - db
 volumes:
