@@ -17,6 +17,6 @@ namespace :ds do
       Client.create(id: client['id'], name: client['name'])
       updated += 1
     end
-    puts "Added #{updated} records!"
+    puts updated.zero? ? 'No new records found.' : "Added #{updated} records."
   end
 end

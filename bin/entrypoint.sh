@@ -8,6 +8,7 @@ rm -f ./tmp/pids/server.pid
 # Adding '2>/dev/null' sends output to nowhere in the case of an error and the
 # error code also triggers the bash OR to run db:setup
 bundle exec rails db:migrate 2>/dev/null || bundle exec rails db:setup
+bundle exec rails ds:update_clients
 
 # Then exec the container's main process (CMD in the Dockerfile).
 exec "$@"
