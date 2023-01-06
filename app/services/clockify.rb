@@ -43,8 +43,7 @@ class Clockify
       clients: {
         contains: 'CONTAINS',
         ids: [client_id]
-      },
-      archived: false
+      }
     }.to_json
     response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) { |http| http.request(request) }
     JSON.parse(response.body)
