@@ -15,7 +15,7 @@ For more details on how the application's credentials and secrets work, please c
    * `DATABASE_URL` - this value must be set in order for the web service to be able to connect successfully to the database service. The format is: `postgres://postgres:<chosen_password>@db:5432` - because the two containers will share a virtual network, we can simply refer to the database container by its service name `db` as set in the `docker-compose.yml` file.
 1. If there are any code changes or this is the initial deployment on a new machine, run `docker compose build` to (re)build the images required for the application.
 1. Run `docker compose up -d` to deploy the application.
-   * This will run two containers in the background: `web` and `db` which host, respectively the Rails application and the database. The `-d` flag runs the containers in detached mode which keeps the containers active in the background.
+   * This will run two containers in the background: `web` and `db` which host, respectively, the Rails application and the database. The `-d` flag runs the containers in detached mode which keeps the containers active in the background after the command exits.
    * The `db` container uses a docker volume to persist data between reboots.
    * To check logs, navigate to the project directory and run `docker compose logs web`. This will show the logs for the web service. This is likely where most errors will come from, but you can substitute `web` with `db` to get the logs for the database service as well.
    * The `web` container has a few additional utility rake tasks set up to ease administration. In order to run these tasks, append `docker compose run web` before the command to run them in the web container.
@@ -26,7 +26,7 @@ For more details on how the application's credentials and secrets work, please c
 # Development Deployment
 This project uses Ruby, Rails and PostgreSQL for its database.
 1. Install Ruby 3.0.2 (recommend installing via a tool like `rbenv`)
-1. Install PostgreSQL
+1. Install PostgreSQL and configure peer authentication for the intended Linux user
 1. Clone this repository
 1. Run `bundle install` to install the dependencies
 1. Once Rails is installed, set up the database by running `rails db:create; rails db:migrate`
@@ -36,3 +36,6 @@ This project uses Ruby, Rails and PostgreSQL for its database.
    * `workspace` - String for API in the format `workspaces/<workspace_id>`
 1. Once the credentials file is saved, Rails will encrypt it. It is now safe to check in to version control. For more details about secrets management for this application, please see `secrets_config.md`.
 1. Once the application is set up, `rails s` will start the server - when run locally, it will run in development mode and show errors in the browser.
+
+## Future Opportunities
+Dockerize development development as well, so we don't need to install anything on the target machine aside from Docker.
