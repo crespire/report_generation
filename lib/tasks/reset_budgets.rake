@@ -2,8 +2,8 @@
 
 namespace :ds do
   desc 'Removes all project budgets'
-  task reset_projects: [:environment] do
-    puts "Removing #{Project.count} project record(s)..."
+  task reset_budgets: [:environment] do
+    puts "Resetting #{Project.count} project budget(s)..."
     Project.delete_all
   end
 end
