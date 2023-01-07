@@ -1,7 +1,7 @@
 <div class="input-form">
   <h1><%= @client_name %> Projects</h1>
   <div>
-      <p>Enter the project budgets below. Projects will pre-fill with previously used budget, and changes will be persisted.</p>
+      <p>Enter the project budgets (in studio days) below. Projects will pre-fill with previously used budget, and changes will be persisted.</p>
       <p>Leave the budget as "s" to skip generating that project report.</p>
   </div>
   <%= form_with url: "/budgets", method: :post, class: 'report-params', local: true, data: { turbo: false } do |form| %>
@@ -11,7 +11,7 @@
     <table class="budget-table">
       <tr>
         <th>Project</th>
-        <th>Budget</th>
+        <th>Budget (studio days)</th>
       </tr>
       <% @projects.each do |project| %>
         <tr>

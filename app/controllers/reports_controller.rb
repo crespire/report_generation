@@ -1,6 +1,8 @@
 require('zip')
 
 class ReportsController < ApplicationController
+  ##
+  # Hours per studio day
   DAY_STANDARD = 7
 
   def new
@@ -9,10 +11,10 @@ class ReportsController < ApplicationController
   end
 
   def create
-    # If PDF, we need more information
+    # PDF requested, we need project budgets
     redirect_to action: 'budgets', params: report_params.reject { |k| k['authenticity_token'] || k['commit'] } and return if params[:type] == 'pdf'
 
-    # Otherwise, generate XLSX reporting
+    # XLSX requested
     create_xlsx(report_params)
   end
 
@@ -25,6 +27,7 @@ class ReportsController < ApplicationController
     redirect_to root_path(type: 'xlsx', date: date, client: @client_id), notice: "No tasks recorded in date range." and return unless tasks
 
     json = api.detailed_report(@client_id, @start_date, @end_date)
+    # Having a code key means we have error content.
     raise "Error: #{json['code']} #{json['message']}" if json.key?('code')
 
     @projects = Hash.new { |hash, key| hash[key] = [] }
