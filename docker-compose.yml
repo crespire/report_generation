@@ -14,14 +14,14 @@ services:
       - .env
     volumes:
       - postgres:/var/lib/postgresql/data
-    restart: always
+    restart: "no"
     healthcheck:
       test: pg_isready -U postgres -h 127.0.0.1
       interval: 5s
     logging: *logging
   web:
     build: .
-    restart: always
+    restart: "no"
     ports:
       - "3000:3000"
     env_file:
