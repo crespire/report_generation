@@ -14,8 +14,9 @@ For more details on how the application's credentials and secrets work, please c
    * `POSTGRES_PASSWORD` - this can be an arbitrary value, but whatever is set becomes the password for the Postgres database.
    * `DATABASE_URL` - this value must be set in order for the web service to be able to connect successfully to the database service. The format is: `postgres://postgres:<chosen_password>@db:5432` - because the two containers will share a virtual network, we can simply refer to the database container by its service name `db` as set in the `docker-compose.yml` file.
 1. If there are any code changes or this is the initial deployment on a new machine, run `docker compose build` to (re)build the images required for the application.
-1. Run `docker compose up -d` to deploy the application.
+1. Run `docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d` to deploy the application.
    * This will run two containers in the background: `web` and `db` which host, respectively, the Rails application and the database. The `-d` flag runs the containers in detached mode which keeps the containers active in the background after the command exits.
+   * This instructs docker compose to run with the base configuration, then add the `prod` configuration override file. The `prod` file simply specifies a different restart policy.
    * The `db` container uses a docker volume to persist data between reboots.
    * To check logs, navigate to the project directory and run `docker compose logs web`. This will show the logs for the web service. This is likely where most errors will come from, but you can substitute `web` with `db` to get the logs for the database service as well.
    * The `web` container has a few additional utility rake tasks set up to ease administration. In order to run these tasks, append `docker compose run web` before the command to run them in the web container.
